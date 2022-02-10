@@ -60,6 +60,10 @@ const CreatePin = ({ user }) => {
           _ref: user._id,
         },
         category,
+        likedBy: {
+          _type: 'likedBy',
+          _ref: user._id,
+        },
       };
       client.create(doc).then(() => {
         navigate('/');

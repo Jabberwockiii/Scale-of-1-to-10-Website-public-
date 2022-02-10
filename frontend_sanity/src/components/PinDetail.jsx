@@ -14,6 +14,7 @@ const PinDetail = ({ user }) => {
   const [pinDetail, setPinDetail] = useState();
   const [comment, setComment] = useState('');
   const [addingComment, setAddingComment] = useState(false);
+  const [ratingPost, setRatingPost] = useState(false);
 
   const fetchPinDetails = () => {
     const query = pinDetailQuery(pinId);
@@ -52,6 +53,32 @@ const PinDetail = ({ user }) => {
         });
     }
   };
+  {/**rate pin */}
+  let alreadyRated = pinDetail?.rateList?.filter((item) => item?.postedBy?._id === user?.googleId);
+
+  alreadyRated = alreadyRated?.length > 0 ? alreadyRated : [];
+
+  const ratePin = () => {
+    if (alreadyRated?.length === 0) {
+      setRatingPost(true);
+      client
+        .patch(pinId)
+        .setIfMissing({ rateList: [] })
+          .insert('after', 'rateList[-1]', [{
+            _key: uuidv4(),
+            userId: user?.googleId,
+            rateBy: {
+              _type: 'rateBy',
+              _ref: user?.googleId,
+            },
+          }])
+          .commit()
+          .then(() => {
+            window.location.reload();
+            setRatingPost(false);
+        });
+    }
+  };
 
   if (!pinDetail) {
     return (
@@ -62,7 +89,7 @@ const PinDetail = ({ user }) => {
   return (
     <>
       {pinDetail && (
-        <div className="flex xl:flex-row flex-col m-auto bg-white" style={{ maxWidth: '1500px', borderRadius: '32px' }}>
+        <div className="flex xl:flex-row flex-col m-auto bg-white" style={{ maxWidth: '1500px', borderRadius: '50px' }}>
           <div className="flex justify-center items-center md:items-start flex-initial">
             <img
               className="rounded-t-3xl rounded-b-lg"
@@ -78,19 +105,79 @@ const PinDetail = ({ user }) => {
                   download
                   className="bg-secondaryColor p-2 text-xl rounded-full flex items-center justify-center text-dark opacity-75 hover:opacity-100"
                 >
+                  {/* download icon */}
                   <MdDownloadForOffline />
                 </a>
               </div>
+                {/*start of the rate button*/}
+                {alreadyRated?.length !== 0 ? (
+                <button type="button" className="bg-red-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none">
+                   Rated
+                </button>
+              ) : (
+
+                // <button
+                //   onClick={(e) => {
+                //     ratePin(_id);
+                //   }}
+                //   type="button"
+                //   className="bg-red-500 opacity-70 hover:opacity-100 text-white font-bold px-5 py-1 text-base rounded-3xl hover:shadow-md outline-none"
+                // >
+                //   {pin?.rateList?.length}   {ratingPost ? 'Rating' : 'Rate'}
+                // </button>
+              <div className = 'flex gap-3'>
+               <button type="button" 
+               className="bg-red-500 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none"
+               onClick={(e) => {
+                ratePin();
+              }}>
+                  Rate 
+              </button>
+              <button type="button" className="bg-red-100 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  1
+              </button>
+              <button type="button" className="bg-red-100 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  2
+              </button>
+              <button type="button" className="bg-red-200 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  3
+              </button>
+              <button type="button" className="bg-red-200 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  4
+              </button>
+              <button type="button" className="bg-red-300 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  5
+              </button>
+              <button type="button" className="bg-red-300 text-white font-bold px-3 py-2 text-base rounded-full outline-none">
+                  6
+              </button>
+              <button type="button" className="bg-red-400 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  7
+              </button>
+              <button type="button" className="bg-red-500 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  8
+              </button>
+              <button type="button" className="bg-red-500 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  9
+              </button>
+              <button type="button" className="bg-red-500 text-white font-bold px-3 py-2 text-base rounded-full hover:shadow-md outline-none">
+                  10
+              </button>
+              </div>
+              )}
+              {/*end of the rate button*/}
               <a href={pinDetail.destination} target="_blank" rel="noreferrer">
                 {pinDetail.destination?.slice(8)}
               </a>
             </div>
+            {/** title and about here */}
             <div>
               <h1 className="text-4xl font-bold break-words mt-3">
                 {pinDetail.title}
               </h1>
               <p className="mt-3">{pinDetail.about}</p>
             </div>
+            {/**link here */}
             <Link to={`/user-profile/${pinDetail?.postedBy._id}`} className="flex gap-2 mt-5 items-center bg-white rounded-lg ">
               <img src={pinDetail?.postedBy.image} className="w-10 h-10 rounded-full" alt="user-profile" />
               <p className="font-bold">{pinDetail?.postedBy.userName}</p>
@@ -115,10 +202,11 @@ const PinDetail = ({ user }) => {
               <Link to={`/user-profile/${user._id}`}>
                 <img src={user.image} className="w-10 h-10 rounded-full cursor-pointer" alt="user-profile" />
               </Link>
+              {/**input details tag,  */}
               <input
                 className=" flex-1 border-gray-100 outline-none border-2 p-2 rounded-2xl focus:border-gray-300"
                 type="text"
-                placeholder="Add a comment"
+                placeholder="Judge me"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
